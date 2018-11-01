@@ -1,0 +1,311 @@
+/* Generated Code (IMPORT) */
+/* Source File: Transpose_ex.xlsx */
+/* Source Path: /folders/myfolders */
+/* Code generated on: 10/27/18, 10:41 AM */
+
+%web_drop_table(WORK.IMPORT);
+
+
+FILENAME REFFILE '/folders/myfolders/Transpose_ex.xlsx';
+
+PROC IMPORT DATAFILE=REFFILE
+	DBMS=XLSX
+	OUT=WORK.IMPORT;
+	GETNAMES=YES;
+RUN;
+
+PROC CONTENTS DATA=WORK.IMPORT; RUN;
+
+
+%web_open_table(WORK.IMPORT);
+
+
+
+
+
+
+proficient in SAS,SAS/MACROS,SAS SQL and SAS enterprise guide
+extensive programming experience with PROC SQL, PROC FORMAT, PROC SORT, PROC CONTENTS, PROC TRANSPOSE
+see - basic of datawarehouse, datamark
+
+
+
+
+
+proc import datafile = "/folders/myfolders/Report_20180610.xlsx" out = report10 dbms = xlsx replace;
+proc import datafile = "/folders/myfolders/Report_20180611.xlsx" out = report11 dbms = xlsx replace;
+proc import datafile = "/folders/myfolders/Report_20180612.xlsx" out = report12 dbms = xlsx replace;
+proc import datafile = "/folders/myfolders/Report_20180613.xlsx" out = report13 dbms = xlsx replace;
+
+/*Macros way */
+%macro fileimport(in,res);
+proc import datafile = "/folders/myfolders/&in..xlsx" out = &res dbms = xlsx replace;
+/* we are putting two dots because we are using macro variable before extension
+Remove one dot and see the error */
+%mend fileimport ;
+
+%fileimport(Report_20180610,report10);
+%fileimport(Report_20180611,report11);
+%fileimport(Report_20180612,report12);
+%fileimport(Report_20180613,report13);
+
+/* OR */
+
+%macro macro11;
+%let a = 10; 
+%do i = 0 %to 6;
+%let b = %eval(&a+&i);
+%fileimport(Report_201806&b,report&b);
+output;
+run;
+%end;
+%mend;
+%macro11;
+
+/* OR */
+
+%macro macro10;
+%let a = 10; 
+%do i = 0 %to 6;
+%let b = %eval(&a+&i);
+proc import datafile = "/folders/myfolders/Report_201806&b..xlsx" out = report&b dbms = xlsx replace;
+output;
+run;
+%end;
+%mend;
+%macro10;
+
+
+
+
+
+
+data class;
+ set sashelp.class;
+run; 
+ 
+data classfit;
+ set sashelp.classfit;
+run;
+
+
+data means1;
+set sashelp.cars;
+run;
+
+/* Creating a MACRO VARIABLE BY USING % LET STATEMENT */
+%LET DSN = classfit; 
+PROC CONTENTS DATA=&dsn;
+ TITLE "DATA SET &dsn"; 
+ RUN;
+PROC PRINT DATA=&dsn (obs=10);
+RUN;
+
+%LET REPDATE=&SYSDATE9;
+ proc export data=MEANS1 outfile="/folders/myfolders/&REPDATE.MEANS1.csv" dbms=csv replace;
+;
+
+          /* USING POSITIONAL PARAMETERS */
+%MACRO macro2(DSN,obs);
+ PROC CONTENTS DATA=&dsn;
+ TITLE "DATA SET &dsn";
+ RUN;
+ PROC PRINT DATA=&dsn (OBS=&obs);
+ TITLE2 "FIRST &obs OBSERVATIONS";
+ RUN;
+%MEND macro2;
+%macro2(CLASSFIT,10);
+
+        /* USING keyword or named PARAMETERS */
+%MACRO macro3(DSN=,obs=);
+ PROC CONTENTS DATA=&dsn;
+ TITLE "DATA SET &dsn";
+ RUN;
+ PROC PRINT DATA=&dsn (OBS=&obs);
+ TITLE2 "FIRST &obs OBSERVATIONS";
+ RUN;
+%MEND macro3;
+%macro3(obs=10,dsn=classfit);
+
+/* Example */
+data new_1;
+set sashelp.cars;
+run;
+
+/* Example of creating a macro */
+/* 
+proc sql;
+create table where_sql as 
+select *
+from sashelp.cars
+where origin="Europe";
+quit; 
+
+proc sql;
+create table where_sql as 
+select *
+from sashelp.cars
+where origin="Asia";
+quit; 
+*/
+
+%MACRO macro4 (DSN,Conti);
+proc sql;
+create table where_sql as 
+select *
+from &DSN
+where origin="&Conti";
+quit; 
+%MEND macro4 ;
+/*  resolving the macro */
+%macro4(new_1,Europe);
+%macro4(new_1,Asia);
+
+/* Using proc sql into Clause */
+
+data into1;
+set sashelp.class;
+run;
+
+proc sql;
+create table into2 as
+select name 
+      , sex
+      ,weight
+      ,weight/50.5 as Normality
+      from into1;
+      run;
+ /* Creating a  macro way */
+ proc sql;
+ select weight into:normality_ref
+ from into1
+ where name="Joyce";
+ run;
+  
+proc sql;
+create table into2 as
+select name 
+      , sex
+      ,weight
+      ,weight/&normality_ref as Normality
+      from into1;
+      run;
+/* another example */      
+proc sql;
+ select weight into:future_weight
+ from into1;
+ run;
+  
+proc sql;
+create table into4 as
+select name 
+      , sex
+      ,weight
+      ,weight+&future_weight as double;
+      from into1;
+      run;
+      
+ /* Call symput */      
+data test_symput;
+set sashelp.class;
+if _N_ = 5 then do;
+call symput('nvar', name);
+end;
+run;
+%put &nvar;
+
+data want;
+var1=symget('nvar');
+run;
+
+/* in writing macros we have to write '%' as prefix before any function */
+
+/* Using Macro options */
+
+options mprint mlogic symbolgen; /* we have to use this statement before writing macros */          
+%macro macro4;
+%let b=5;
+data A;
+%do i = 1 %to &b;
+   y = &i**2;  /* here i is also a macro variable, 
+we can create a variable using do statement in a macro code */
+   output;
+%end;
+run;
+%mend;
+
+%macro4;
+
+
+/* Storing SAS Macros */
+%include "/folders/myfolders/macro4.sas.txt";
+%macro4;
+
+options mautolocdisplay mautosource sasautos = ("/folders/myfolders/") ;
+%macro4;
+	
+/* Storing the macro after compilation */
+libname loct "C:\Users\Deepanshu\Downloads\";
+options mstored sasmstore = loct;
+%macro storemacroval / store source des="Description of Macro";
+     /* Using Stored compile Macros */
+libname loct "C:\Users\Deepanshu\Downloads\";
+options mstored sasmstore = loct;
+%storemacroval;
+
+
+/* Automatic System macro  variables by below option */
+
+%put _automatic_;
+
+/* user defined macro variables by below option */
+%put _user_;
+
+
+/* Macro Functions */
+
+/* Eval */
+%LET A=3 ;
+ %LET B=&A+1;
+ %LET C=%EVAL(&A+1);
+ %PUT &A &B &C;
+      
+/* Sys EvalF */
+%LET D=%EVAL (&A+3.2); 
+
+%LET D=%SYSEVALF(&A+3.2);
+%put &d;
+/* Sys Func */
+%Put %SYSFUNC(Today(),Date9.);
+
+/* % STR nd %NRSTR */
+
+%LET D=5;
+ %LET abc = %STR ( "S &D Analytics");
+ %PUT &abc;
+%LET bcd = %NRSTR ( "S &D Analytics");
+ %PUT &bcd;
+
+
+
+      
+      
+      
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
