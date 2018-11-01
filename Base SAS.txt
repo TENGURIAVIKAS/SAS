@@ -1,0 +1,1124 @@
+/* Libraries */
+libname ATI1 "/folders/myfolders";
+
+/* Basic SAS program*/
+Data ATI1.distance;
+		miles = 23;
+	kilometer = 1.61 * miles;
+Run;	
+PROC PRINT DATA = distance;
+Run;
+
+/* Example*/
+ data ati1.examp;
+ str = 56;
+ ftr = 45;
+ RUN;
+ 
+ /* Data step options(rename, drop and keep)*/
+data distance(rename=(miles=mls));
+miles = 23;
+	kilometer = 1.61 * miles;
+	mm=34;
+	mm=23;
+Run;
+
+/* creating a database distance1 with the name changed of miles to mls*/
+data ati1.distance2 (rename = (miles = mls));
+set ati1.distance;
+run;
+
+/* creating a database distance2 with the name changed of miles to mls and kilogram to kilo*/
+data ati1.distance2 (rename = (kilometer = kilo) rename = (miles = mls));
+set ati1.distance;
+run;
+
+/* creating a dataset with the name temp which is a copy of distane.*/
+data temp;
+set ati.distance;
+run;
+ 
+ /* to drop or to keep columns in a dataset*/
+
+
+
+/* Program to check whether date is stored as number or not */
+Data  this_is_the_RISK_score; 
+THis_is_the_application_DATE = '02Jan1980'd;
+run;
+
+
+/*proc import infile statement and import wizard these are the three ways to import xl, csv and text files*/
+
+/*importing a csv file florence*/
+proc import datafile="/folders/myfolders/florence.csv" out= flor
+dbms=csv replace;
+run;
+
+/*importing an xls file */
+/* if we use replace it replaces the old dataset if there is any with the same name*/
+proc import datafile="/folders/myfolders/World95.xls" out = world
+dbms=xls replace; sheet="World95";             /*getnames=yes;*/
+run;
+
+/*importing an xls file */
+
+
+
+ /* Importing a Text file with Tab delimited values*/
+PROC IMPORT DATAFILE= "/folders/myfolders/practice_text.txt"
+OUT= outdata
+DBMS=dlm   
+REPLACE;
+delimiter='09'x;  /* this syntax is for tab delimiter*/
+GETNAMES=YES;
+RUN;
+
+ /* Importing a text file comma separated values*/
+PROC IMPORT DATAFILE= "/folders/myfolders/practice_text_2.txt"
+OUT= outdata1
+DBMS=csv
+REPLACE;
+GETNAMES=YES;
+RUN;
+
+/* infile statement */
+
+data dsn;
+/* infile datalines; */
+input name $ age  gender $ dob;
+informat dob mmddyy10.;
+ format dob date9.; /* Commenting format will give you number of days*/
+datalines;
+sachin 27 m 08/01/1991
+mahi   23 f 01/01/1979
+pavan  24 m 08/07/1963 
+;
+run;
+
+/* by using informat statement we can read the data*/
+/* by using format we can write the data*/
+/* using format and informat is useful incase of dates otherwise there is no need it'll be the same.*/
+
+data dsn1;
+infile "/folders/myfolders/testing/basic_practice.csv" dlm=',' firstobs=2; 
+informat id 10. height 10. weight 10. ; /* there is no need to used informat and format*/
+format id 10. height 10. weight 10.;
+input id:10. height:10. weight:10.;
+run;
+
+
+
+
+/* import files with single space and pipe symbol*/
+/* get all the date formats and informats*/
+
+/* Infile statement options
+DLM
+DSD
+Missover
+Stopover*/
+
+
+
+DATA outdata2; 
+   INFILE Datalines dlm="," ;
+   INPUT age gender $ dept obs1 obs2 obs3; 
+   Datalines; 
+1,F,3,17,8,24
+1,M,1,19,25,7
+3,M,4,24,10,20
+3,F,2,,23,8,32
+2,F,1,14,23,12
+;
+proc print;
+run;
+
+DATA outdata3; 
+   INFILE Datalines dlm ="," dsd; /* dsd(delimited sensitive value) is to take care of the missing values*/
+   INPUT age gender $ dept obs1 obs2 obs3 obs4; 
+   Datalines; 
+1,,3,17,3,24,3
+1,M,1,19,25,7,6
+3,M,4,24,10,20,7
+3,F,2,,23,8,10
+2,F,1,14,23,12,23
+;
+
+proc print;
+run;
+
+DATA outdata4; 
+   INFILE Datalines dlm ="," stopover ; /*  stopover will not execute if there is any missing value*/
+   INPUT age gender $ dept obs1 obs2 obs3; 
+   Datalines; 
+1,F,3,17,,24
+1,M,1,19,25,7
+3,M,4,24,10,20
+3,F,2,,23,8
+2,F,1,14,23,12
+;
+
+proc print;
+run;
+
+/* no need to use stopover, missover, flowover. dlm and dsd will do the job better.*/
+
+ /*Exporting data*/
+/* exporting flor dataset file as vikas in csv format.*/
+
+proc export data = flor outfile="/folders/myfolders/testing/vikas.csv" dbms=csv replace;
+;
+
+ /* set statement used to create a copy of the dataset, so that we can do our job on new data set and original datset is not affected */
+ 
+data set_new;
+set outdata4;
+run;
+
+/*data new;
+set a1 a2 a3 a4 
+run; 
+
+Where a1 a2 a3 are datasets of same variable, this way we can append multiple observations*/
+
+
+
+/* if and where statement */
+
+/* If statement - ineffficient in terms of filtering the data, it reads complete data from the source
+and filters the data after PdV( program data vector) */
+/* Where statement - efficient in terms of filtering the data, that means it filters the data in source itself.*/
+
+
+data where_statement;
+set sashelp.cars;
+where origin="Asia";
+run;
+
+/* SAS in not case sensitive, but while filtering by "Asia" if we use "asia" it won't work as data is case sensitive. */
+
+data if_statement;
+set sashelp.cars;
+if origin="Asia" then output ;
+run;
+
+proc sql;
+ create table where_sql as 
+ select *
+from sashelp.cars
+where origin="Asia";
+quit; 
+
+/* cannot use if in proc sql */
+proc sql;
+create table if_sql as 
+select *
+from sashelp.cars
+if origin="Asia";
+quit; 
+
+
+/* Do Loops *
+
+/* Do Loop */
+
+data A;
+do i = 1 to 5 ;
+   y = i**2; 
+   output;
+end;
+run;
+
+data C;
+do i = 1 to 5 ;
+   i = i**2; 
+   output;
+end;
+run;
+
+data A;
+do i = 1 to 5 by 0.5;
+   y = i**2; 
+   output;
+end;
+run;
+
+/* Do While Loop */
+data D;
+do i = 1 to 10  while(y <= 10);
+   y = i*2; /* values are 1, 2.25, 4, ..., 16, 20.5 */
+   output;
+end;
+run;
+
+/* Do Until */
+data B;
+
+do i = 1 to 10  until(y >= 10);
+   y = i*2; /* values are 1, 2.25, 4, ..., 16, 20.5 */
+   output;
+end;
+run;
+
+/* IF Then else statement */
+Data readin;
+Input ID Q1-Q3;
+cards;
+85 1 2 3
+90 3 4 6
+95 5 5 6
+100 6 6 4
+105 5 5 6
+110 6 6 5
+;
+
+Data readin1;
+Set readin;
+IF ID LE 100 THEN TAG ="Old";
+ELSE TAG ="New";
+run;
+      /* If then elseif statement */
+Data readin;
+Input ID Q1-Q3;
+cards;
+70 1 2 3
+45 1 2 3
+85 1 2 3
+25 1 2 3
+90 3 4 6
+95 5 5 6
+100 6 6 4
+105 5 5 6
+110 6 6 5
+;
+
+Data readin1;
+Set readin;
+length TAG $20;
+IF ID < 75 THEN TAG ="Old";
+ELSE IF 75 <= ID < 100 THEN TAG = "New"; 
+ELSE IF ID >= 100 THEN TAG ="Unchecked";
+run; 
+
+
+/* if then else statement Class room solving */
+DATA EMPDAT;
+INPUT   EMPID ENAME $ SALARY DEPT $ DOJ DATE9.;
+FORMAT DOJ DATE9.;
+DATALINES;
+1 Rick 623.3 IT 02APR2001
+2 Dan 515.2 OPS 11JUL2012
+3 Mike 611.5 IT 21OCT2000
+4 Ryan 729.1 HR 30JUL2012
+5 Gary 843.2 FIN 06AUG2000
+6 Tusar 578.6 IT 01MAR2009
+7 Pranab 632.8 OPS 16AUG1998
+8 Rasmi 722.5 FIN 13SEP2014
+;
+
+/* if salary is less than 500 tag =  min , between 500 -600 then med , if greater than 600 max.
+*/
+
+Data EMPDAT1;
+Set EMPDAT;
+length TAG $20;
+IF SALARY < 500 THEN TAG ="Min";
+ELSE IF 500 <= SALARY < 600 THEN TAG = "Med"; 
+ELSE IF SALARY >= 600 THEN TAG ="Max";
+run; 
+
+        /* case when statement */
+
+proc sql;
+create table case_loop as 
+select * 
+, case 
+  when origin="Asia" then "Asia Pacific" 
+  when origin="Europe" then "EU Region"
+  else "North America"
+  end as Region
+from
+sashelp.cars;
+Quit;
+/* case is used only while using SQL syntax.*/
+
+      /* first. and last. */
+data first_last;
+infile datalines; 
+input id name $ age  gender $ dob;
+informat dob mmddyy10.;
+format dob date9.; /*Commenting format will give you number of days*/
+datalines;
+101 sachin 27 m 08/01/1992
+101 sachin 27 m 08/01/1991
+102 mahi   23 f 01/01/1979
+103 pavan  24 m 08/07/1963
+104 pavani  24 f 08/07/1978 
+102 mahi   23 f 01/01/1980
+103 pavan  24 m 08/07/1964
+104 pavani  24 f 08/07/1979
+101 sachin 27 m 08/01/1993
+102 mahi   23 f 01/01/1981
+103 pavan  24 m 08/07/1965
+104 pavani  24 f 08/07/1980 
+;
+run;
+
+proc sort data=first_last out=first_last_new;
+by id ;
+run;
+
+/* to sort by multiple variables just give space, like "by id  dob" */  
+
+data FL_new;
+set first_last_new;
+by id;
+if last.id then output;
+run;
+
+data FL_new;
+set first_last_new;
+by id;
+if first.id then output;
+run;
+
+data FL_new;
+set first_last_new;
+by id;
+if first.id or last.id then output;
+run;
+
+
+
+
+/* Functions */
+/* Numeric Functions */
+
+Data sum_;
+set sashelp.cars;
+run;
+
+
+Data sum_datastep;
+set sashelp.cars;
+x=sum(weight,wheelbase,length);
+y=mean(weight,wheelbase,length);
+z=min(weight,wheelbase,length);
+c=Max(weight,wheelbase);
+run;
+
+proc sql;
+create table sum_sql as
+select 
+* 
+,sum(weight) as x
+,mean(weight) as y
+,min(weight) as z
+,max(weight) as c
+ from sashelp.cars;
+run;
+quit;
+
+/* Character Functions */
+data char_func;
+set sashelp.cars;
+i='scan the variable';
+x=scan(model,2,"");
+y=substr(make,3,2);
+z=cats(make,"-",type);
+c=index(i,'the');
+r=translate(type,'A','S');
+r1=translate(type,'','S');
+k=tranwrd(type,'Sedan','ADA');
+run;
+
+
+
+/* Date Functions */
+
+/* INTCK - it gives the difference between two dates */
+/* INTNX - it'll increment the dates by given number of intervals.*/ 
+                         
+                         
+                         
+/* INTCK */
+data intck_ex;
+date1 = '01JAN2015'd; /* d is used as a format , instead we can also use 01/01/2015 */
+date2 = '01JAN2017'd;
+no_of_years  = intck ('YEAR', date1, date2);
+format date1 date2 date9.;
+run;
+
+data intck_ex;
+date1 = '01JAN2015'd;
+date2 = '01JAN2017'd;
+no_of_years  = intck ('YEAR', date1, date2);
+no_of_semiyears  = intck ('SEMIYEAR', date1, date2);
+no_of_quarters  = intck ('QUARTER', date1, date2);
+no_of_months  = intck ('MONTH', date1, date2);
+no_of_weeks  = intck ('WEEK', date1, date2);
+no_of_days  = intck ('DAY', date1, date2);
+format date1 date2 date9.;
+run;
+
+
+ /* INTNX*/
+data intnx_ex;
+mydate = '02JAN2017'd;
+day=intnx('day', mydate , 7);
+format mydate day date9.;
+run;
+
+data intnx_ex;
+mydate = '31JAN2017'd;
+beginning=intnx('year ', mydate , 1, 'b'); /*  using'b' or not will give the same result */
+middle=intnx('year ', mydate , 1, 'm'); 
+end=intnx('year ', mydate , 1, 'e');  /* though end is a keyword but we can use as a variable */
+sameday=intnx('year ', mydate , 1,'s' );
+format mydate beginning middle end sameday date9.;
+run;
+
+/* Conversion Functions */
+
+/* Input function -  will convert character values to numeric values 
+put function - will convert numeric to character. */
+
+ /* Input function */
+   data testin;
+      input sale $12.;   /* input is used to input data */
+      fmtsale=input(sale,7.);  /* input is being used as a function */
+       format fmtsale comma9.;
+      datalines;
+   2115353
+   ;                         
+   
+   /* Put Function */
+data test;
+   numdate=122591;
+   chardate=put(numdate,7.);
+   run;
+
+/* Array */                 
+ Data Temps ;
+ mon = 20;
+ tue = 30 ;
+ wed = 40;
+ thu = 50;
+ fri = 60;
+ sat = 70;
+ sun = 10 ;
+ run;
+ 
+ data temps1;
+set temps;
+mon=5*(mon-32)/9;
+tue=5*(tue-32)/9;
+wed=5*(wed-32)/9;
+thu=5*(thu-32)/9;
+fri=5*(fri-32)/9;
+sat=5*(sat-32)/9;
+sun=5*(sun-32)/9;
+run;
+
+data temps2;
+set temps;
+array wkday {7} mon tue wed thu fri sat sun;
+do i=1 to 7;
+wkday{i}=5*(wkday{i}-32)/9;
+end;
+run;
+
+/* Array - not really important */
+
+
+                                 
+             
+/* SQL joins combines records from two tables the join locates related column value in the two table
+if we have n tables we need n-1 conditions. */
+
+/* proc sql*/
+proc sql;
+create table sql_ex as
+select * 
+from sashelp.cars;
+run;
+
+proc sql;
+create table sql_ex1 as 
+select make 
+      ,sum(weight) as weight_sum
+      from sql_ex
+      group by make
+      having sum(weight) > 30000
+      order by weight_sum desc;
+      run;
+
+/* Joins*/
+proc import datafile="/folders/myfolders/students.xls" out= students
+dbms=xls replace; sheet="Sheet1";             /*getnames=yes;*/
+run; 
+
+proc import datafile="/folders/myfolders/students_x.xls" out= students_sameid
+dbms=xls replace; sheet="Sheet1";             /*getnames=yes;*/
+run; 
+
+proc import datafile="/folders/myfolders/students_y.xls" out= students_differentid
+dbms=xls replace; sheet="Sheet1";             /*getnames=yes;*/
+run; 
+
+
+proc import datafile="/folders/myfolders/students_x_merge_in.xls" out= students_mergein
+dbms=xls replace; sheet="Sheet1";             /*getnames=yes;*/
+run; 
+
+
+
+/* Proc SQL Join*/
+proc sql;
+create table sql_join as
+select t1.*
+       ,t2.name 
+       from students as t1
+       left join students_sameid as t2
+       on t1.id=t2.id;
+run;
+
+
+
+
+
+
+/* Merge */
+
+proc sort data=students;
+by id;
+proc sort data=students_sameid;
+by id;
+proc sort data=students_mergein;
+by id;
+
+
+data merge_ex;
+merge students students_sameid;
+by id;
+run;
+
+/* to merge there should be sorting first and common variable names */
+/* merge students and students different id */
+
+
+
+          /* examples using IN option*/
+data merge_ex;
+merge students(in=a) students_sameid(in=b);
+by id;
+x=a;
+y=b;
+if a=1 and b=1;
+run;
+/* a = 1 and b = 1 for inner join
+a = 1 for left join
+b = 1 for right join
+a = 1 or b =1 for full join */
+
+
+
+data merge_ex1;
+merge students(in=a) students_mergein(in=b);
+by id;
+x=a;
+y=b;
+run;
+
+proc contents data = sashelp.cars varnum;
+ run ;
+/* gives the properties of dataset */
+
+/* Transpose - condition for transpose is we need to sort the dataset.*/
+
+                  /*  Transpose */
+proc import datafile="/folders/myfolders/Transpose_ex.xlsx" out= transpose_ex
+dbms=xlsx replace; sheet="Sheet1";             /*getnames=yes;*/
+run;
+
+proc sort data=transpose_ex;
+by name;
+run;
+
+proc transpose data=transpose_ex out=transpose_ex2 prefix=t_;
+by name; /* what we want to keep as it is we use "by" for that */
+id subject;  /* what we want to change from rows to columm or column to rows */
+var marks; /* what we want to disperse */
+run;
+
+
+                      /* Proc sort*/
+                     
+ proc import datafile="/folders/myfolders/Sorting_dataset.xlsx" out= sorting
+dbms=xlsx replace; sheet="Sheet1";             /*getnames=yes;*/
+run;
+                     
+                     
+proc sort data=sorting out=sorted_data nodup;
+by id;
+run;
+
+proc sort data=sorted_data out=sorted_data1 nodupkey dupout=dup;
+by id;
+run;
+
+data temp;
+set dup;
+run;
+
+
+
+/* Date() and today() Functions */
+
+data dates;
+a=date();
+b=today();
+format a b date9.;
+run;
+            /* dATE TIME AND DATE FORMATS */
+data dates;
+a=date();
+b=today();
+C=DATETIME() ;
+d = substr(C, -1,12) ;
+format a b d date9.;
+format C datetime16.;
+run;
+/* instead of using substr we can use any formats which can give time. */
+data dates;
+a=date();
+b=today();
+C=DATETIME() ;
+format a year.;
+format  b d date9.;
+format C datetime16.;
+run;
+
+
+/* Double Trailing */
+
+data dsn1;
+infile "/folders/myfolders/double_trailing.csv" dlm=',' firstobs=2 ; 
+informat date date9.;
+format date date9.;
+input date temp ;
+run;
+
+Data multiple;
+Infile cards; 
+Input name$ city$ @@;
+Cards;
+Smith nj Scott ca tiger del 
+;
+Run;
+
+
+Data multiple;
+Infile cards; 
+Input name$ city$ code$ @@;
+Cards;
+Smith nj D Scott ca E tiger del F
+;
+Run;
+
+
+
+/* Single Trailing */
+
+data data1;
+infile cards;
+input city :$ @;
+do quarter =1 to 4 ;
+input rain @;
+output;
+end;
+cards;
+delhi 50 45 55 67
+;
+run;
+
+
+data dsn1;
+infile "/folders/myfolders/single_trailing.csv" dlm=',' firstobs=2 ; 
+input id @;
+input sales @;
+output;
+input sales @;
+output;
+input sales @;
+output;
+input sales @;
+output;
+run;
+
+data dsn1;
+infile "/folders/myfolders/single_trailing.csv" dlm=',' firstobs=2 ; 
+input id @;
+do quarter=1 to 4;
+input sales @;
+output;
+end;
+run;
+
+/* retain statement */
+
+data retain_st;
+input x y;
+cards;
+1 25 
+1 28
+1 27
+2 23
+2 35
+2 34
+3 25
+3 29
+;
+run;
+
+
+/* Serial Number Generation */
+data retain_st1;
+set retain_st;
+ retain z 0;  /* assigning z = 0 */
+z = z + 1;
+run;
+
+/* Cumulative Calculations */
+data retain_st2;
+set retain_st;
+retain z 0;
+z = z + y;
+run;
+
+/* Generate Serial Number by Group*/
+proc sort data = retain_st;
+by x;
+run;
+
+data retain_st3;
+set retain_st;
+retain z;
+if first.x then z = 1;
+else z = z + 1;
+by x;
+run;
+
+/* Cumulative Score by Group */
+
+data retain_st4;
+set retain_st;
+retain z1;
+if first.x then z1 = y;
+else z1 = z1 + y;
+by x;
+run;
+
+/* Number of Unique Observations */
+
+data retain_st5;
+set retain_st ;
+retainz;
+if first.x then z = 1;
+else z = z + 1;
+by x;
+if last.x then output;
+run;
+
+
+data retain_st5;
+set retain_st ;
+retain z;
+if first.x then z = 1;
+else z = z + 1;
+retain z1;
+if first.x then z1 = y;
+else z1 = z1 + y;
+by x;
+if last.x then output;
+drop y;
+run;
+
+/* Proc Means    */
+
+data means1;
+set sashelp.cars;
+run;
+
+proc means data=means1;
+run;
+
+/* if not specified otherwise, proc means give descriptive statistics for all numeric variables. */
+
+/* To limit Descriptive statistics */
+proc means data=means1 n nmiss;
+run;	
+/* Group the analysis using CLASS option*/
+proc means data=means1 ;
+class type;
+run;
+/* Group the analysis using BY option*/
+
+proc sort data=means1;
+by  type;
+run;
+
+proc means data=means1 ;
+by type;
+run;
+
+/* Proc Summary  */
+
+proc summary data=means1;
+output; /* output not run for proc summary */
+/* proc means just give the frequency proc means give the descriptive statistics */
+/* _TYPE_ these are system generated variables which we can do nothing about */ 
+proc summary data=means1;
+var weight;
+output;
+/* this gives descriptive statistics of an individual variable */
+
+/* Proc Freq     */
+
+proc freq data=means1;
+run;
+
+/* Tables will be used to give variable names needed */
+proc freq data=means1;
+tables type;
+run;
+/* Can give Cross tabulation */
+proc freq data=means1;
+tables type*weight;
+run;
+/* giving list option */
+proc freq data=means1;
+tables type*weight/list;
+run;
+/* Proc Datsets  */
+proc datasets lib=work;
+run;
+
+proc datasets lib=work memtype=data;
+ run;
+quit;
+
+/*Combine SAS Datasets*/
+
+data class;
+ set sashelp.class;
+run; 
+ 
+data classfit;
+ set sashelp.classfit;
+run;
+
+
+proc datasets lib=work;
+ append out=class data=class;
+run;
+quit;
+
+/* Using Force option to append the datasets */
+proc datasets lib=work;
+ append out=class data=classfit force;
+run;
+ contents data=class;
+run;
+quit;
+Libname mydata1 "/folders/myfolders";
+/* Copying datsets to other library */
+proc datasets;
+ copy in=work out=mydata1;
+run;
+quit;
+proc datasets lib=mydata1 memtype=data;
+run;
+quit;
+/* Deleting datsets */
+proc datasets lib=work memtype=data;
+ delete class;
+run;
+quit;
+proc datasets lib=work memtype=data;
+run;
+quit;
+
+/* to know the version , Components available in sastool */
+proc setinit;	
+run;
+
+  /* Proc Format */
+data form;
+set sashelp.cars;
+run;
+
+proc format; /* is used to define or create user defined formats or informat */
+value storage /* if we write value then it is a format, if we give invalue then it is informat */
+low - 10='1'  /* storage is the name of the format */
+10 <- 20='2'
+20 <- high='3' ;
+
+proc format ;
+value $powered_model
+'SUV'=1
+'truck'=1
+other=0;
+
+data form1;
+set form;
+age_group=put(MPG_city,storage.);
+powered_model=put(type,powered_model.);
+run;
+
+/* Creating my own format to read the data  */
+
+
+data indata;
+format name $10. gender $12.;
+infile datalines delimiter=',';
+input Name Gender $;
+Datalines;
+Satish,M
+Hema,F
+;
+run;
+
+proc format lib=work;
+value $G_Desc
+'F'='Female'
+'M'='Male'
+;
+run;
+
+data indata;
+format name $10. gender $G_Desc.;
+infile datalines delimiter=',';
+input Name Gender $;
+Datalines;
+Satish,M
+Hema,F
+;
+run;
+
+/* Using invalue in proc format */
+
+proc format lib=work;
+invalue G_Des
+'F'=0
+'M'=1
+;
+run;
+
+
+data form3;
+set indata;
+G_desc1=input(Gender,G_des.);
+run;
+
+/* it will throw error if you use value to create numbers for F and M */
+
+proc format lib=work;
+value G_Des
+'F'=0
+'M'=1
+;
+run;
+
+/* ODS (output delivery system) */
+
+ods pdf file='/folders/myfolders/first_ods.pdf'; /* storing as pdf in myfolder */
+
+proc print data=classfit; /* whatever dataset we want to take as pdf */
+run;
+
+ods pdf close;
+
+
+
+
+
+
+
+
+
+
+/* difference between sum operator and sum function */
+data vikas ;
+a = . ;
+b = 3 ;
+c = a+b ;
+run;
+
+data vikas1 ;
+a = . ;
+b = 3 ;
+c = sum(a,b) ;
+run;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* Generated Code (IMPORT) */
+/* Source File: Transpose_ex.xlsx */
+/* Source Path: /folders/myfolders */
+/* Code generated on: 10/20/18, 9:32 AM */
+
+%web_drop_table(WORK.IMPORT);
+
+
+FILENAME REFFILE '/folders/myfolders/Transpose_ex.xlsx';
+
+PROC IMPORT DATAFILE=REFFILE
+	DBMS=XLSX
+	OUT=WORK.IMPORT;
+	GETNAMES=YES;
+RUN;
+
+PROC CONTENTS DATA=WORK.IMPORT; RUN;
+
+
+%web_open_table(WORK.IMPORT);
